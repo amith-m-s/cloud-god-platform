@@ -1,0 +1,109 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - cloud-god-net
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+    volumes:
+      - ./:/app
+    command: python -m app.workers.processor
+    restart: on-failure:5
+    networks:
+      - cloud-god-net
+
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: cloudgod
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d cloudgod"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - cloud-god-net
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - redis_data:/data
+    networks:
+      - cloud-god-net
+
+  localstack:
+    image: localstack/localstack:3.7
+    environment:
+      SERVICES: s3,sqs
+      DEBUG: 0
+      AWS_DEFAULT_REGION: ap-south-1
+      PERSISTENCE: 1
+    ports:
+      - "4566:4566"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - localstack_data:/var/lib/localstack
+    networks:
+      - cloud-god-net
+
+volumes:
+  postgres_data:
+  redis_data:
+  localstack_data:
+
+networks:
+  cloud-god-net:
+    driver: bridge

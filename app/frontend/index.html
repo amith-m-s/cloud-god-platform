@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Cloud God Platform — FAANG-grade document intelligence with RAG, semantic search, and multi-tenant architecture.">
+    <title>Cloud God Platform</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="animated-bg"></div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         AUTH SCREEN
+         ═══════════════════════════════════════════════════════ -->
+    <div id="auth-screen" class="auth-container">
+        <div class="auth-card">
+            <div class="auth-logo">
+                <span class="logo-icon">☁️</span>
+                <h1>Cloud God</h1>
+                <p>FAANG-Grade Document Intelligence Platform</p>
+            </div>
+
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Sign In</button>
+                <button class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">Create Account</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="login-form" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label class="form-label" for="login-email">Email</label>
+                    <input class="form-input" id="login-email" type="email" placeholder="you@company.com" required autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="login-password">Password</label>
+                    <input class="form-input" id="login-password" type="password" placeholder="Enter your password" required autocomplete="current-password">
+                </div>
+                <button class="btn btn-primary" type="submit" id="login-btn">
+                    <span>Sign In</span>
+                </button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="register-form" style="display:none" onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label class="form-label" for="reg-name">Full Name</label>
+                    <input class="form-input" id="reg-name" type="text" placeholder="John Doe" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="reg-email">Email</label>
+                    <input class="form-input" id="reg-email" type="email" placeholder="you@company.com" required autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="reg-password">Password</label>
+                    <input class="form-input" id="reg-password" type="password" placeholder="Min 8 characters" required minlength="8" autocomplete="new-password">
+                </div>
+                <button class="btn btn-primary" type="submit" id="register-btn">
+                    <span>Create Account</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         APP LAYOUT (Dashboard)
+         ═══════════════════════════════════════════════════════ -->
+    <div id="app-layout" class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <span class="logo-icon">☁️</span>
+                <h2>Cloud God</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-item active" data-view="dashboard" onclick="switchView('dashboard')">
+                    <span class="nav-icon">📊</span>
+                    <span>Dashboard</span>
+                </div>
+                <div class="nav-item" data-view="documents" onclick="switchView('documents')">
+                    <span class="nav-icon">📄</span>
+                    <span>Documents</span>
+                    <span class="nav-badge" id="doc-count-badge">0</span>
+                </div>
+                <div class="nav-item" data-view="search" onclick="switchView('search')">
+                    <span class="nav-icon">🔍</span>
+                    <span>Search</span>
+                </div>
+                <div class="nav-item" data-view="chat" onclick="switchView('chat')">
+                    <span class="nav-icon">🤖</span>
+                    <span>RAG Chat</span>
+                </div>
+                <div class="nav-item" data-view="monitor" onclick="switchView('monitor')">
+                    <span class="nav-icon">🛡️</span>
+                    <span>System Monitor</span>
+                </div>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-card" onclick="handleLogout()">
+                    <div class="user-avatar" id="user-avatar">U</div>
+                    <div class="user-info">
+                        <div class="user-name" id="user-display-name">User</div>
+                        <div class="user-role">Sign Out</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- ── DASHBOARD VIEW ──────────────────────────── -->
+            <div id="view-dashboard" class="view active">
+                <div class="page-header">
+                    <h1>Dashboard</h1>
+                    <p>Welcome back! Here's your platform overview.</p>
+                </div>
+                <div class="page-body">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">📄</div>
+                            <div class="stat-value" id="stat-docs">0</div>
+                            <div class="stat-label">Total Documents</div>
+                            <div class="stat-change positive">↑ Ready for search</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🔍</div>
+                            <div class="stat-value" id="stat-searches">0</div>
+                            <div class="stat-label">Searches Today</div>
+                            <div class="stat-change positive">↑ Powered by TF-IDF</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🤖</div>
+                            <div class="stat-value" id="stat-chats">0</div>
+                            <div class="stat-label">RAG Conversations</div>
+                            <div class="stat-change positive">↑ Context-aware</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🛡️</div>
+                            <div class="stat-value" id="stat-status">Live</div>
+                            <div class="stat-label">System Status</div>
+                            <div class="stat-change positive">↑ All systems go</div>
+                        </div>
+                    </div>
+
+                    <div class="section-card">
+                        <div class="section-header">
+                            <h3 class="section-title">⚡ Quick Actions</h3>
+                        </div>
+                        <div class="section-body" style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+                            <button class="btn btn-ghost btn-sm" onclick="switchView('documents')">📄 Upload Document</button>
+                            <button class="btn btn-ghost btn-sm" onclick="switchView('search')">🔍 Search Knowledge</button>
+                            <button class="btn btn-ghost btn-sm" onclick="switchView('chat')">🤖 Start Chat</button>
+                            <button class="btn btn-ghost btn-sm" onclick="openSeedModal()">📝 Seed Text Data</button>
+                        </div>
+                    </div>
+
+                    <div class="section-card">
+                        <div class="section-header">
+                            <h3 class="section-title">📋 Recent Documents</h3>
+                            <button class="btn btn-ghost btn-sm" onclick="switchView('documents')">View All →</button>
+                        </div>
+                        <div class="section-body">
+                            <div id="recent-docs" class="doc-list">
+                                <div class="empty-state">
+                                    <div class="empty-icon">📭</div>
+                                    <h3>No documents yet</h3>
+                                    <p>Upload or seed your first document to get started.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── DOCUMENTS VIEW ──────────────────────────── -->
+            <div id="view-documents" class="view">
+                <div class="page-header">
+                    <h1>Documents</h1>
+                    <p>Upload, manage, and index your knowledge base.</p>
+                </div>
+                <div class="page-body">
+                    <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+                        <input type="file" id="file-input" onchange="handleFileUpload(event)">
+                        <div class="upload-icon">📤</div>
+                        <h3>Drop files here or click to upload</h3>
+                        <p>Supports PDF, TXT, MD, DOCX</p>
+                    </div>
+                    <div style="margin-bottom: 1.5rem;">
+                        <button class="btn btn-ghost btn-sm" onclick="openSeedModal()">📝 Seed with Text Instead</button>
+                        <button class="btn btn-ghost btn-sm" onclick="loadDocuments()" style="margin-left:0.5rem">🔄 Refresh</button>
+                    </div>
+                    <div class="section-card">
+                        <div class="section-header">
+                            <h3 class="section-title">All Documents</h3>
+                            <span style="color:var(--text-muted); font-size:0.8125rem" id="doc-total-label">0 documents</span>
+                        </div>
+                        <div class="section-body">
+                            <div id="doc-list" class="doc-list">
+                                <div class="empty-state">
+                                    <div class="empty-icon">📭</div>
+                                    <h3>No documents yet</h3>
+                                    <p>Upload a file or seed text data to begin.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── SEARCH VIEW ─────────────────────────────── -->
+            <div id="view-search" class="view">
+                <div class="page-header">
+                    <h1>Semantic Search</h1>
+                    <p>Search across your entire knowledge base with TF-IDF scoring.</p>
+                </div>
+                <div class="page-body">
+                    <div class="search-bar-lg">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="search-input" placeholder="Search your knowledge base..."
+                               onkeydown="if(event.key==='Enter') handleSearch()">
+                    </div>
+                    <div id="search-results">
+                        <div class="empty-state">
+                            <div class="empty-icon">🔍</div>
+                            <h3>Start searching</h3>
+                            <p>Enter a query above to search through your indexed documents.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── CHAT VIEW ───────────────────────────────── -->
+            <div id="view-chat" class="view">
+                <div class="page-header">
+                    <h1>RAG Chat</h1>
+                    <p>Ask questions and get context-aware answers from your documents.</p>
+                </div>
+                <div class="page-body">
+                    <div class="chat-container">
+                        <div class="chat-messages" id="chat-messages">
+                            <div class="chat-welcome">
+                                <div class="welcome-icon">🤖</div>
+                                <h2>Cloud God AI</h2>
+                                <p>Ask anything about your uploaded knowledge base. I'll find the most relevant context and craft a detailed answer.</p>
+                                <div class="chat-suggestions">
+                                    <div class="suggestion-card" onclick="askSuggestion('Summarize the key concepts')">💡 Summarize the key concepts</div>
+                                    <div class="suggestion-card" onclick="askSuggestion('What are the main features?')">⚡ What are the main features?</div>
+                                    <div class="suggestion-card" onclick="askSuggestion('Explain the architecture')">🏗️ Explain the architecture</div>
+                                    <div class="suggestion-card" onclick="askSuggestion('List the best practices')">📋 List the best practices</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-input-area">
+                            <div class="chat-input-wrapper">
+                                <textarea id="chat-input" placeholder="Ask a question about your documents..."
+                                          rows="1" onkeydown="handleChatKeydown(event)"
+                                          oninput="autoResizeTextarea(this)"></textarea>
+                                <button class="chat-send-btn" id="chat-send-btn" onclick="handleChat()">➤</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── SYSTEM MONITOR VIEW ─────────────────────── -->
+            <div id="view-monitor" class="view">
+                <div class="page-header">
+                    <h1>System Monitor</h1>
+                    <p>Real-time metrics, service dependency tracking, and active telemetry.</p>
+                </div>
+                <div class="page-body">
+                    <!-- Monitor grid -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">🗄️</div>
+                            <div class="stat-value" id="monitor-db-status">Checking...</div>
+                            <div class="stat-label">Database Status</div>
+                            <div class="stat-change" id="monitor-db-change">--</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">⚡</div>
+                            <div class="stat-value" id="monitor-redis-status">Checking...</div>
+                            <div class="stat-label">Redis Cache Status</div>
+                            <div class="stat-change" id="monitor-redis-change">--</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">📥</div>
+                            <div class="stat-value" id="monitor-api-calls">0</div>
+                            <div class="stat-label">Logged API Requests</div>
+                            <div class="stat-change positive">↑ Auto-updating</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">⏳</div>
+                            <div class="stat-value" id="monitor-avg-latency">-- ms</div>
+                            <div class="stat-label">Avg Req Latency</div>
+                            <div class="stat-change positive">↑ From telemetry</div>
+                        </div>
+                    </div>
+
+                    <!-- Telemetry visual and terminal -->
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-top: 1.5rem;">
+                        <div class="section-card">
+                            <div class="section-header">
+                                <h3 class="section-title">📊 Live Prometheus Telemetry Terminal</h3>
+                                <button class="btn btn-ghost btn-sm" onclick="fetchLiveMonitorMetrics()">🔄 Fetch Raw</button>
+                            </div>
+                            <div class="section-body">
+                                <pre id="monitor-terminal" style="font-family: var(--font-mono); font-size: 0.8125rem; background: var(--bg-primary); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-glass); overflow-x: auto; max-height: 250px; color: var(--accent-success); margin: 0;"></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="section-card">
+                            <div class="section-header">
+                                <h3 class="section-title">🚀 Route Statistics Breakdown</h3>
+                            </div>
+                            <div class="section-body" style="padding:0;">
+                                <table id="monitor-routes-table" style="width:100%; border-collapse: collapse; text-align: left; font-size: 0.875rem;">
+                                    <thead>
+                                        <tr style="border-bottom: 1px solid var(--border-glass); color: var(--text-secondary);">
+                                            <th style="padding: 1rem 1.5rem;">Endpoint</th>
+                                            <th style="padding: 1rem 1.5rem;">Method</th>
+                                            <th style="padding: 1rem 1.5rem;">Status</th>
+                                            <th style="padding: 1rem 1.5rem;">Total Calls</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="monitor-routes-body">
+                                        <tr>
+                                            <td colspan="4" style="padding: 2rem; text-align: center; color: var(--text-muted);">No metrics collected yet. Make some requests to populate telemetry!</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ── Seed Modal ─────────────────────────────────────── -->
+    <div class="modal-overlay" id="seed-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>📝 Seed Document Text</h2>
+                <button class="modal-close" onclick="closeSeedModal()">✕</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="seed-doc-id">Document ID (leave 0 to auto-create)</label>
+                <input class="form-input" id="seed-doc-id" type="number" value="0" min="0">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="seed-text">Paste your text content</label>
+                <textarea class="seed-text" id="seed-text" placeholder="Paste the document content you want to index for search and RAG..."></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="handleSeedDocument()">
+                <span>Index Document</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ── Preview Modal ───────────────────────────────────── -->
+    <div class="modal-overlay" id="preview-modal">
+        <div class="modal" style="max-width: 900px; width: 95%; display: flex; flex-direction: column; max-height: 85vh;">
+            <div class="modal-header" style="flex-shrink: 0; margin-bottom: 0.75rem;">
+                <h2 id="preview-doc-title">📄 Document Preview</h2>
+                <button class="modal-close" onclick="closePreviewModal()">✕</button>
+            </div>
+            
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem; flex-shrink: 0; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-glass);">
+                <span id="preview-doc-meta" style="color:var(--text-muted); font-size:0.875rem;">File size: -- | Status: --</span>
+                <div style="display:flex; gap:0.5rem;">
+                    <a id="preview-download-btn" href="#" target="_blank" class="btn btn-ghost btn-sm" style="display:inline-flex; align-items:center; gap:4px;">📥 Download File</a>
+                </div>
+            </div>
+
+            <!-- Preview Tabs Header -->
+            <div class="preview-tabs" id="preview-tabs-container" style="display:flex; gap:0.5rem; margin-bottom:1rem; flex-shrink:0; flex-wrap: wrap;">
+                <button class="btn btn-ghost btn-sm active" id="p-tab-pipeline" onclick="switchPreviewTab('pipeline')">⚡ Pipeline Stages</button>
+                <button class="btn btn-ghost btn-sm" id="p-tab-chunks" onclick="switchPreviewTab('chunks')">🔍 Semantic Chunks</button>
+                <button class="btn btn-ghost btn-sm" id="p-tab-raw" onclick="switchPreviewTab('raw')">📄 Raw Document</button>
+                <button class="btn btn-ghost btn-sm" id="p-tab-metadata" onclick="switchPreviewTab('metadata')">🛡️ DB Properties</button>
+            </div>
+
+            <!-- Dynamic Content Area -->
+            <div id="preview-content-area" style="flex: 1; overflow: hidden; min-height: 450px; display: flex; flex-direction: column;">
+                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; min-height:250px; gap:1rem; color:var(--text-muted);">
+                    Select a document to preview...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
