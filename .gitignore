@@ -22,3 +22,9 @@ node_modules/
 .DS_Store
 Thumbs.db
 *.log
+
+# Local runtime and development artifacts
+*.db
+*.db-*
+local_storage/
+.env
