@@ -10,6 +10,8 @@ This is a **cloud architecture reference implementation**, not a live production
 
 The current retrieval implementation is intentionally lightweight: token/TF-IDF-style scoring is used for local search, while the embedding layer is isolated so a real sentence-transformer or hosted embedding provider can be introduced without changing the API contract.
 
+> **Implementation boundary:** the repository currently uses lightweight lexical retrieval for the local RAG path. The `EmbeddingService` generates deterministic development vectors, but uploaded chunks are not currently indexed into pgvector, and the Terraform stack does not provision PostgreSQL/Redis or an ECS worker. AWS resources described below are the infrastructure shape under development, not evidence of a live production deployment.
+
 ## Architecture
 
 ~~~
