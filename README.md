@@ -1,3 +1,10 @@
+[![Top Language](https://img.shields.io/github/languages/top/amith-m-s/cloud-god-platform)](https://github.com/amith-m-s/cloud-god-platform)
+[![Code Size](https://img.shields.io/github/languages/code-size/amith-m-s/cloud-god-platform)](https://github.com/amith-m-s/cloud-god-platform)
+[![Repo Size](https://img.shields.io/github/repo-size/amith-m-s/cloud-god-platform)](https://github.com/amith-m-s/cloud-god-platform)
+[![Last Commit](https://img.shields.io/github/last-commit/amith-m-s/cloud-god-platform)](https://github.com/amith-m-s/cloud-god-platform/commits/main)
+[![Issues](https://img.shields.io/github/issues/amith-m-s/cloud-god-platform)](https://github.com/amith-m-s/cloud-god-platform/issues)
+[![Stars](https://img.shields.io/github/stars/amith-m-s/cloud-god-platform)](https://github.com/amith-m-s/cloud-god-platform/stargazers)
+
 # Cloud God Platform
 
 **AWS/Terraform reference implementation for document intelligence and RAG workflows.**
