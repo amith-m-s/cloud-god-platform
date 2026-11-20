@@ -13,6 +13,14 @@ def test_request_id_preserves_safe_client_value(client):
     assert response.headers["X-Request-ID"] == request_id
 
 
+def test_request_id_accepts_maximum_length(client):
+    request_id = "a" * 64
+    response = client.get("/health", headers={"X-Request-ID": request_id})
+
+    assert response.status_code == 200
+    assert response.headers["X-Request-ID"] == request_id
+
+
 @pytest.mark.parametrize("request_id", ["trace id", "x" * 65, ""])
 def test_request_id_replaces_unsafe_or_unbounded_client_values(client, request_id):
     response = client.get("/health", headers={"X-Request-ID": request_id})
