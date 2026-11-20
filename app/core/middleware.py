@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import time
 import uuid
 
@@ -12,12 +13,21 @@ from app.api.routes.health import REQUEST_COUNT, REQUEST_LATENCY
 
 logger = structlog.get_logger("middleware")
 
+_REQUEST_ID_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}", re.ASCII)
+
+
+def _resolve_request_id(value: str | None) -> str:
+    """Preserve only bounded, header-safe correlation IDs; otherwise generate one."""
+    if value is not None and _REQUEST_ID_PATTERN.fullmatch(value):
+        return value
+    return str(uuid.uuid4())
+
 
 class RequestIdMiddleware(BaseHTTPMiddleware):
-    """Attach a unique request ID to every request and response, and track Prometheus metrics."""
+    """Attach a safe request ID to every request and response, and track metrics."""
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
-        request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
+        request_id = _resolve_request_id(request.headers.get("X-Request-ID"))
         structlog.contextvars.clear_contextvars()
         structlog.contextvars.bind_contextvars(request_id=request_id)
 
@@ -42,9 +52,7 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
 
         try:
             REQUEST_COUNT.labels(
-                method=request.method,
-                endpoint=path,
-                status=str(status_code)
+                method=request.method, endpoint=path, status=str(status_code)
             ).inc()
             REQUEST_LATENCY.labels(endpoint=path).observe(duration)
         except Exception as e:
@@ -59,4 +67,3 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
         )
 
         return response
-
